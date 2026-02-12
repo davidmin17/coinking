@@ -78,6 +78,31 @@ http://localhost:3000 에서 확인할 수 있습니다.
 | GET | /api/portfolio | 포트폴리오 (인증 필요) |
 | GET | /api/leaderboard | 랭킹 (순수익·수익률) |
 
+## Vercel 배포
+
+Vercel에 배포한 뒤 **반드시** 해야 할 것:
+
+### 1. 환경 변수 설정 (Vercel 대시보드)
+
+프로젝트 → Settings → Environment Variables에서 추가:
+
+| 변수 | 값 | 설명 |
+|------|---|------|
+| `DATABASE_URL` | Neon 연결 문자열 | 로컬과 **동일한 DB** 사용 시 같은 값 |
+| `AUTH_SECRET` | 32자 이상 랜덤 문자열 | `openssl rand -base64 32` 로 생성 |
+| `AUTH_URL` | `https://your-app.vercel.app` | 배포된 도메인 URL |
+
+### 2. DB 테이블 생성
+
+- **로컬과 같은 Neon DB**를 쓰는 경우: 이미 `prisma db push` 했으면 **추가 작업 없음**
+- **별도 프로덕션 DB**를 쓰는 경우: 해당 `DATABASE_URL`로 `npx prisma migrate deploy` 실행
+
+### 3. Neon 연결 (Vercel용)
+
+Neon 대시보드에서 **Pooled connection** 문자열 사용 권장 (서버리스에 적합).
+
+---
+
 ## Phase 2 예정
 
 - WebSocket 실시간 시세
