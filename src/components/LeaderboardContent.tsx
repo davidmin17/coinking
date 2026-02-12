@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import useSWR from "swr";
+import { UserPortfolioModal } from "./UserPortfolioModal";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export function LeaderboardContent() {
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const { data, error, isLoading } = useSWR("/api/leaderboard", fetcher, {
     refreshInterval: 5000,
   });
@@ -16,6 +19,7 @@ export function LeaderboardContent() {
   const ranking = data.ranking ?? [];
 
   return (
+    <>
     <div className="overflow-x-auto rounded-lg border border-[#30363d]">
       <table className="w-full text-sm">
         <thead>
@@ -25,12 +29,13 @@ export function LeaderboardContent() {
             <th className="text-right py-3 px-4 text-gray-400 font-medium">총자산</th>
             <th className="text-right py-3 px-4 text-gray-400 font-medium">순수익</th>
             <th className="text-right py-3 px-4 text-gray-400 font-medium">수익률</th>
+            <th className="py-3 px-4"></th>
           </tr>
         </thead>
         <tbody>
           {ranking.length === 0 ? (
             <tr>
-              <td colSpan={5} className="py-8 text-center text-gray-400">
+              <td colSpan={6} className="py-8 text-center text-gray-400">
                 참여자가 없습니다.
               </td>
             </tr>
@@ -68,6 +73,14 @@ export function LeaderboardContent() {
                       {r.profitRate >= 0 ? "+" : ""}
                       {r.profitRate.toFixed(2)}%
                     </td>
+                    <td className="py-3 px-4">
+                      <button
+                        onClick={() => setSelectedUserId(r.userId)}
+                        className="px-3 py-1 bg-[#30363d] hover:bg-[#40464d] text-gray-300 hover:text-white rounded text-xs font-medium"
+                      >
+                        보기
+                      </button>
+                    </td>
                   </tr>
                 );
               }
@@ -76,5 +89,13 @@ export function LeaderboardContent() {
         </tbody>
       </table>
     </div>
+
+    {selectedUserId && (
+      <UserPortfolioModal
+        userId={selectedUserId}
+        onClose={() => setSelectedUserId(null)}
+      />
+    )}
+  </>
   );
 }
