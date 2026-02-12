@@ -3,7 +3,7 @@ import { SessionProvider } from "@/components/SessionProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "코이킹 - 모의 코인 투자 대회",
+  title: "CoinKing - 모의 코인 투자 대회",
   description: "업비트 시세 기반 모의 코인 투자 게임",
 };
 

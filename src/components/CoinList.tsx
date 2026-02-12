@@ -1,7 +1,7 @@
 "use client";
 
 import useSWR from "swr";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { Session } from "next-auth";
 import { BuyModal } from "./BuyModal";
 
@@ -20,6 +20,8 @@ type Ticker = {
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
+const BATCH_SIZE = 100;
+
 export function CoinList({ session }: { session: Session | null }) {
   const [selectedMarket, setSelectedMarket] = useState<Market | null>(null);
 
@@ -27,17 +29,44 @@ export function CoinList({ session }: { session: Session | null }) {
     refreshInterval: 60000,
   });
 
-  const marketCodes = markets.slice(0, 20).map((m) => m.market).join(",");
-  const { data: tickers = [] } = useSWR<Ticker[]>(
-    marketCodes ? `/api/ticker?markets=${marketCodes}` : null,
-    fetcher,
+  const tickerUrls = useMemo(() => {
+    const batches: string[] = [];
+    for (let i = 0; i < markets.length; i += BATCH_SIZE) {
+      const batch = markets.slice(i, i + BATCH_SIZE).map((m) => m.market).join(",");
+      if (batch) batches.push(`/api/ticker?markets=${batch}`);
+    }
+    return batches;
+  }, [markets]);
+
+  const { data: tickerBatches } = useSWR(
+    tickerUrls.length > 0 ? tickerUrls : null,
+    (urls: string[]) => Promise.all(urls.map((u) => fetch(u).then((r) => r.json()))),
     { refreshInterval: 3000 }
   );
+
+  const tickers: Ticker[] = useMemo(
+    () => (tickerBatches ?? []).flat(),
+    [tickerBatches]
+  );
+
+  const sortedMarkets = useMemo(() => {
+    const tickerMap = new Map(tickers.map((t) => [t.market, t]));
+    return markets
+      .map((m) => ({ market: m, ticker: tickerMap.get(m.market) }))
+      .sort((a, b) => (b.ticker?.acc_trade_price_24h ?? 0) - (a.ticker?.acc_trade_price_24h ?? 0))
+      .slice(0, 20)
+      .map(({ market }) => market);
+  }, [markets, tickers]);
 
   const tickerMap = new Map(tickers.map((t) => [t.market, t]));
 
   function formatPrice(n: number) {
     return n >= 1000 ? n.toLocaleString() : n.toFixed(2);
+  }
+
+  function formatTradePrice(n: number) {
+    const millions = Math.round(n / 1_000_000);
+    return `${millions.toLocaleString()}백만`;
   }
 
   function formatChange(rate: number) {
@@ -59,7 +88,7 @@ export function CoinList({ session }: { session: Session | null }) {
             </tr>
           </thead>
           <tbody>
-            {markets.slice(0, 20).map((m) => {
+            {sortedMarkets.map((m) => {
               const ticker = tickerMap.get(m.market);
               const changeRate = ticker?.signed_change_rate ?? 0;
               const isUp = changeRate > 0;
@@ -84,9 +113,7 @@ export function CoinList({ session }: { session: Session | null }) {
                     {ticker ? formatChange(changeRate) : "-"}
                   </td>
                   <td className="py-3 px-4 text-gray-400">
-                    {ticker
-                      ? `${(ticker.acc_trade_price_24h / 1_000_000).toFixed(0)}백만`
-                      : "-"}
+                    {ticker ? formatTradePrice(ticker.acc_trade_price_24h) : "-"}
                   </td>
                   <td className="py-3 px-4">
                     <button

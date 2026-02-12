@@ -55,7 +55,7 @@ function LoginForm() {
     <div className="min-h-screen flex items-center justify-center bg-[#0d1117] px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-[#00c853]">코이킹</h1>
+          <h1 className="text-2xl font-bold text-[#00c853]">CoinKing</h1>
           <p className="text-gray-400 mt-1">모의 코인 투자 대회</p>
         </div>
         <form

@@ -9,7 +9,7 @@ export function Header({ session }: { session: Session | null }) {
     <header className="border-b border-[#30363d] bg-[#161b22]">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/" className="text-xl font-bold text-[#00c853]">
-          코이킹
+          CoinKing
         </Link>
         <nav className="flex items-center gap-4">
           {session ? (
