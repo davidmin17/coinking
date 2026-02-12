@@ -25,15 +25,26 @@ cp .env.example .env
 
 ### 2. 데이터베이스 마이그레이션
 
+**중요**: `DATABASE_URL`에 실제 PostgreSQL 연결 문자열이 설정되어 있어야 합니다.  
+(예: Neon에서 발급한 `postgresql://user:password@ep-xxx.region.aws.neon.tech/neondb?sslmode=require`)
+
 ```bash
 npx prisma migrate dev
 ```
 
-또는 기존 DB에 스키마만 반영하려면:
+또는 프로덕션/기존 DB에 마이그레이션만 적용:
+
+```bash
+npx prisma migrate deploy
+```
+
+스키마만 반영(마이그레이션 없이)하려면:
 
 ```bash
 npx prisma db push
 ```
+
+> **오류가 발생한다면**: `The table public.User does not exist` → DB에 테이블이 없습니다. 위 마이그레이션 명령을 실행하세요. `Can't reach database server` → `DATABASE_URL`의 host/user/password/database가 실제 값인지 확인하세요.
 
 ### 3. 개발 서버 실행
 
