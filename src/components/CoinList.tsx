@@ -71,7 +71,7 @@ export function CoinList({ session }: { session: Session | null }) {
     return markets
       .map((m) => ({ market: m, ticker: tickerMap.get(m.market) }))
       .sort((a, b) => (b.ticker?.acc_trade_price_24h ?? 0) - (a.ticker?.acc_trade_price_24h ?? 0))
-      .slice(0, 20)
+      .slice(0, 40)
       .map(({ market }) => market);
   }, [markets, tickers]);
 
