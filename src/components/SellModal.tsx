@@ -10,11 +10,13 @@ const PERCENT_BTNS = [10, 30, 50, 100] as const;
 export function SellModal({
   market,
   maxVolume,
+  koreanName,
   onClose,
   onSuccess,
 }: {
   market: string;
   maxVolume: number;
+  koreanName?: string;
   onClose: () => void;
   onSuccess: () => void;
 }) {
@@ -78,7 +80,9 @@ export function SellModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-white">{market} 매도</h3>
+          <h3 className="text-lg font-semibold text-white">
+            {koreanName ? `${koreanName} 매도` : `${market} 매도`}
+          </h3>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-white text-xl"

@@ -4,6 +4,7 @@ import useSWR from "swr";
 import { useState, useMemo } from "react";
 import type { Session } from "next-auth";
 import { BuyModal } from "./BuyModal";
+import { SellModal } from "./SellModal";
 
 type Market = {
   market: string;
@@ -22,8 +23,24 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 const BATCH_SIZE = 100;
 
+type Holding = { market: string; volume: number };
+
 export function CoinList({ session }: { session: Session | null }) {
   const [selectedMarket, setSelectedMarket] = useState<Market | null>(null);
+  const [sellTarget, setSellTarget] = useState<{ market: Market; maxVolume: number } | null>(null);
+
+  const { data: portfolio, mutate: mutatePortfolio } = useSWR<{ holdings: Holding[] }>(
+    session ? "/api/portfolio" : null,
+    fetcher,
+    { refreshInterval: 5000 }
+  );
+  const holdingsMap = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const h of portfolio?.holdings ?? []) {
+      m.set(h.market, h.volume);
+    }
+    return m;
+  }, [portfolio?.holdings]);
 
   const { data: markets = [] } = useSWR<Market[]>("/api/markets", fetcher, {
     refreshInterval: 60000,
@@ -116,12 +133,24 @@ export function CoinList({ session }: { session: Session | null }) {
                     {ticker ? formatTradePrice(ticker.acc_trade_price_24h) : "-"}
                   </td>
                   <td className="py-3 px-4">
-                    <button
-                      onClick={() => setSelectedMarket(m)}
-                      className="px-3 py-1 bg-[#00c853] hover:bg-[#00a843] text-black rounded text-xs font-medium disabled:opacity-50"
-                    >
-                      매수
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setSelectedMarket(m)}
+                        className="px-3 py-1 bg-[#00c853] hover:bg-[#00a843] text-black rounded text-xs font-medium disabled:opacity-50"
+                      >
+                        매수
+                      </button>
+                      <button
+                        onClick={() => {
+                          const vol = holdingsMap.get(m.market) ?? 0;
+                          if (vol > 0) setSellTarget({ market: m, maxVolume: vol });
+                        }}
+                        disabled={!(holdingsMap.get(m.market) ?? 0)}
+                        className="px-3 py-1 bg-red-600 hover:bg-red-700 disabled:bg-[#30363d] disabled:text-gray-500 disabled:cursor-not-allowed text-white rounded text-xs font-medium"
+                      >
+                        매도
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
@@ -135,6 +164,19 @@ export function CoinList({ session }: { session: Session | null }) {
           market={selectedMarket}
           onClose={() => setSelectedMarket(null)}
           isLoggedIn={!!session}
+        />
+      )}
+
+      {sellTarget && (
+        <SellModal
+          market={sellTarget.market.market}
+          maxVolume={sellTarget.maxVolume}
+          koreanName={sellTarget.market.koreanName}
+          onClose={() => setSellTarget(null)}
+          onSuccess={() => {
+            setSellTarget(null);
+            mutatePortfolio();
+          }}
         />
       )}
     </>
