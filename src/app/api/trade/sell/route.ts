@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 const UPBIT_TICKER_URL = "https://api.upbit.com/v1/ticker";
-const FEE_RATE = 0.01; // 1%
+const FEE_RATE = 0.001; // 0.1%
 
 export async function POST(request: NextRequest) {
   const session = await auth();

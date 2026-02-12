@@ -42,13 +42,13 @@ export function BuyModal({
   const ticker = tickers[0];
   const currentPrice = ticker?.trade_price ?? 0;
   const orderAmount = volume ? parseFloat(volume) * currentPrice : 0;
-  const fee = orderAmount * 0.01;
+  const fee = orderAmount * 0.001;
   const total = orderAmount + fee;
 
   function setVolumeByPercent(pct: number) {
     if (!currentPrice || currentPrice <= 0) return;
     const spendAmount = balance * (pct / 100);
-    const vol = Math.floor((spendAmount / (currentPrice * 1.01)) * 1e8) / 1e8;
+    const vol = Math.floor((spendAmount / (currentPrice * 1.001)) * 1e8) / 1e8;
     setVolume(vol > 0 ? String(vol) : "0");
   }
 
@@ -143,7 +143,7 @@ export function BuyModal({
                 <span className="text-white">{orderAmount.toLocaleString()}원</span>
               </div>
               <div>
-                수수료 (1%):{" "}
+                수수료 (0.1%):{" "}
                 <span className="text-white">+{fee.toLocaleString()}원</span>
               </div>
               <div>

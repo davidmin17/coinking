@@ -33,7 +33,7 @@ export function SellModal({
   const currentPrice = ticker?.trade_price ?? 0;
   const vol = parseFloat(volume) || 0;
   const orderAmount = vol * currentPrice;
-  const fee = orderAmount * 0.01;
+  const fee = orderAmount * 0.001;
   const receiveAmount = orderAmount - fee;
 
   function setVolumeByPercent(pct: number) {
@@ -138,7 +138,7 @@ export function SellModal({
                 <span className="text-white">{orderAmount.toLocaleString()}원</span>
               </div>
               <div>
-                수수료 (1%):{" "}
+                수수료 (0.1%):{" "}
                 <span className="text-white">-{fee.toLocaleString()}원</span>
               </div>
               <div>
