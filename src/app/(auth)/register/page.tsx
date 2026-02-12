@@ -1,11 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/");
+    }
+  }, [status, router]);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nickname, setNickname] = useState("");
@@ -32,6 +41,14 @@ export default function RegisterPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (status === "authenticated") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0d1117] text-gray-400">
+        이동 중...
+      </div>
+    );
   }
 
   return (

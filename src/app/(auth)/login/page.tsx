@@ -1,14 +1,22 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { signIn } from "next-auth/react";
+import { Suspense, useEffect, useState } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
+
   const callbackUrl = searchParams.get("callbackUrl") || "/";
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace(callbackUrl);
+    }
+  }, [status, router, callbackUrl]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -33,6 +41,14 @@ function LoginForm() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (status === "authenticated") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0d1117] text-gray-400">
+        이동 중...
+      </div>
+    );
   }
 
   return (
