@@ -12,6 +12,8 @@ type MarketType = {
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
+const PERCENT_BTNS = [10, 30, 50, 100] as const;
+
 export function BuyModal({
   market,
   onClose,
@@ -26,6 +28,12 @@ export function BuyModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const { data: portfolio } = useSWR<{ balance: number }>(
+    isLoggedIn ? "/api/portfolio" : null,
+    fetcher
+  );
+  const balance = portfolio?.balance ?? 0;
+
   const { data: tickers = [] } = useSWR(
     `/api/ticker?markets=${market.market}`,
     fetcher,
@@ -36,6 +44,13 @@ export function BuyModal({
   const orderAmount = volume ? parseFloat(volume) * currentPrice : 0;
   const fee = orderAmount * 0.01;
   const total = orderAmount + fee;
+
+  function setVolumeByPercent(pct: number) {
+    if (!currentPrice || currentPrice <= 0) return;
+    const spendAmount = balance * (pct / 100);
+    const vol = Math.floor((spendAmount / (currentPrice * 1.01)) * 1e8) / 1e8;
+    setVolume(vol > 0 ? String(vol) : "0");
+  }
 
   async function handleBuy(e: React.FormEvent) {
     e.preventDefault();
@@ -98,6 +113,19 @@ export function BuyModal({
         <form onSubmit={handleBuy}>
           <div className="mb-4">
             <label className="block text-sm text-gray-400 mb-1">수량</label>
+            <div className="flex gap-2 mb-2">
+              {PERCENT_BTNS.map((pct) => (
+                <button
+                  key={pct}
+                  type="button"
+                  onClick={() => setVolumeByPercent(pct)}
+                  disabled={!isLoggedIn || balance <= 0 || !currentPrice}
+                  className="flex-1 py-1.5 text-xs border border-[#30363d] rounded text-gray-400 hover:bg-[#30363d] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {pct}%
+                </button>
+              ))}
+            </div>
             <input
               type="number"
               step="any"

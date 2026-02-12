@@ -5,6 +5,8 @@ import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
+const PERCENT_BTNS = [10, 30, 50, 100] as const;
+
 export function SellModal({
   market,
   maxVolume,
@@ -31,6 +33,11 @@ export function SellModal({
   const orderAmount = vol * currentPrice;
   const fee = orderAmount * 0.01;
   const receiveAmount = orderAmount - fee;
+
+  function setVolumeByPercent(pct: number) {
+    const vol = Math.floor(maxVolume * (pct / 100) * 1e8) / 1e8;
+    setVolume(String(vol));
+  }
 
   async function handleSell(e: React.FormEvent) {
     e.preventDefault();
@@ -96,6 +103,19 @@ export function SellModal({
         <form onSubmit={handleSell}>
           <div className="mb-4">
             <label className="block text-sm text-gray-400 mb-1">매도 수량</label>
+            <div className="flex gap-2 mb-2">
+              {PERCENT_BTNS.map((pct) => (
+                <button
+                  key={pct}
+                  type="button"
+                  onClick={() => setVolumeByPercent(pct)}
+                  disabled={maxVolume <= 0}
+                  className="flex-1 py-1.5 text-xs border border-[#30363d] rounded text-gray-400 hover:bg-[#30363d] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {pct}%
+                </button>
+              ))}
+            </div>
             <input
               type="number"
               step="any"
@@ -106,13 +126,6 @@ export function SellModal({
               placeholder="0"
               className="w-full px-3 py-2 bg-[#0d1117] border border-[#30363d] rounded text-white focus:outline-none focus:border-[#00c853]"
             />
-            <button
-              type="button"
-              onClick={() => setVolume(String(maxVolume))}
-              className="mt-1 text-xs text-[#00c853] hover:underline"
-            >
-              전량 매도
-            </button>
           </div>
           {vol > 0 && (
             <div className="mb-4 text-sm text-gray-400 space-y-0.5">
