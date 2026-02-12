@@ -63,7 +63,7 @@ export function LeaderboardContent() {
                     <td className="py-3 px-4 text-white font-medium">{r.rank}</td>
                     <td className="py-3 px-4 text-white">{r.nickname}</td>
                     <td className="py-3 px-4 text-right text-white">
-                      {r.totalAsset.toLocaleString()}원
+                      {Math.round(r.totalAsset).toLocaleString()}원
                     </td>
                     <td className={`py-3 px-4 text-right ${profitColor}`}>
                       {r.netProfit >= 0 ? "+" : ""}
