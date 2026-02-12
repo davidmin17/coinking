@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  nickname  String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  wallet   Wallet?
+  holdings Holding[]
+  trades   Trade[]
+}
+
+model Wallet {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  balance   Decimal  @default(1000000) @db.Decimal(18, 2)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Holding {
+  id       String  @id @default(uuid())
+  userId   String  @map("user_id")
+  market   String  // KRW-BTC
+  volume   Decimal @db.Decimal(18, 8)
+  avgPrice Decimal @map("avg_price") @db.Decimal(18, 2)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, market])
+  @@map("holdings")
+}
+
+model Trade {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  market    String
+  side      String   // buy | sell
+  price     Decimal  @db.Decimal(18, 2)
+  volume    Decimal  @db.Decimal(18, 8)
+  total     Decimal  @db.Decimal(18, 2)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("trades")
+}
